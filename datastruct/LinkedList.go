@@ -1,5 +1,10 @@
 package datastruct
 
+import (
+	"fmt"
+	"github.com/Huabuxiu/Youpo/define"
+)
+
 type LinkedList struct {
 	//head Node
 	head *LinkedListNode
@@ -47,7 +52,7 @@ func (linkedList *LinkedList) Add(data interface{}) {
 func (linkedList *LinkedList) Find(index int) (node *LinkedListNode) {
 	linkedList.checkListWithSize(index)
 
-	i := 1
+	i := 0
 	currentNode := linkedList.head
 
 	for true {
@@ -80,6 +85,26 @@ func (linkedList *LinkedList) AddAtHead(data interface{}) {
 	linkedList.size++
 }
 
+//AddAtTail 在链表尾部插入
+func (linkedList *LinkedList) AddAtTail(data interface{}) {
+	linkedList.checkList()
+
+	//空链表直接插入
+	if linkedList.head == nil {
+		linkedList.Add(data)
+		return
+	}
+
+	//当前节点的下一个节点为head
+	newNode := &LinkedListNode{
+		value: data,
+		prev:  linkedList.tail,
+	}
+	linkedList.tail.next = newNode
+	linkedList.tail = newNode
+	linkedList.size++
+}
+
 //Set 修改指定位置的值
 func (linkedList *LinkedList) Set(index int, data interface{}) {
 	node := linkedList.Find(index)
@@ -92,6 +117,8 @@ func (linkedList *LinkedList) Insert(index int, data interface{}) {
 
 	if index == 0 {
 		linkedList.AddAtHead(data)
+	} else if index == linkedList.size {
+		linkedList.AddAtTail(data)
 	} else {
 		preListNode := linkedList.Find(index - 1)
 
@@ -101,6 +128,7 @@ func (linkedList *LinkedList) Insert(index int, data interface{}) {
 		}
 		preListNode.next.prev = newNode
 		preListNode.next = newNode
+		linkedList.size++
 	}
 }
 
@@ -108,10 +136,10 @@ func (linkedList *LinkedList) Insert(index int, data interface{}) {
 func (linkedList *LinkedList) Remove(index int) {
 	linkedList.checkListWithSize(index)
 
-	if index == 1 {
+	if index == 0 {
 		linkedList.head = linkedList.head.next
 		linkedList.head.prev = nil
-	} else if index == linkedList.size {
+	} else if index == linkedList.size-1 {
 		linkedList.tail = linkedList.tail.prev
 		linkedList.tail.next = nil
 	} else {
@@ -119,12 +147,13 @@ func (linkedList *LinkedList) Remove(index int) {
 		listNode.next.prev = listNode.prev
 		listNode.prev.next = listNode.next
 	}
+	linkedList.size--
 }
 
 //RemoveTail
 func (linkedList *LinkedList) RemoveTail() {
 	linkedList.checkList()
-	linkedList.Remove(linkedList.size)
+	linkedList.Remove(linkedList.size - 1)
 }
 
 //Contains 判断是否存在于链表中
@@ -132,13 +161,11 @@ func (linkedList *LinkedList) Contains(value interface{}) bool {
 	linkedList.checkList()
 
 	currentNode := linkedList.head
-
-	for i := 1; i < linkedList.size; i++ {
+	for currentNode != nil {
 		if currentNode.value == value {
 			return true
 		}
 		currentNode = currentNode.next
-		i++
 	}
 	return false
 }
@@ -151,9 +178,14 @@ func (linkedList *LinkedList) ListSize() (size int) {
 	return linkedList.size
 }
 
-//func (linkedList LinkedList) ForEach(function FunctionInterface) {
-//
-//}
+func (linkedList *LinkedList) ForEach(function define.FunctionInterface) {
+	linkedList.checkList()
+	node := linkedList.head
+	for node != nil {
+		function(node)
+		node = node.next
+	}
+}
 
 //make create a new linked list
 func Make(values ...interface{}) *LinkedList {
@@ -173,7 +205,8 @@ func (linkedList *LinkedList) checkList() {
 
 func (linkedList *LinkedList) checkListWithSize(index int) {
 	linkedList.checkList()
-	if index > linkedList.size {
-		panic("index out of list size")
+	if index > linkedList.size || index < 0 {
+		msg := fmt.Sprintf("index %d out of list size", index)
+		panic(msg)
 	}
 }
