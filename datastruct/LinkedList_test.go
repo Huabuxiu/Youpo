@@ -109,3 +109,13 @@ func TestLinkedList_Contains(t *testing.T) {
 	println("list constains 3", list.Contains(3))
 	println("list constains -1", list.Contains(-1))
 }
+
+func TestName(t *testing.T) {
+	m := make(map[string]int)
+
+	m["1234"] = 789
+	m["234"] = 73
+
+	delete(m, "12312312321231")
+
+}
