@@ -49,3 +49,48 @@ func TestSkipList_Remove(t *testing.T) {
 
 	printSkipList(skipList)
 }
+
+func TestSkipList_GetByRank(t *testing.T) {
+	skipList := MakeSkipList()
+
+	for i := 0.0; i < 100.0; i += 1.0 {
+		skipList.Insert(i, strconv.FormatFloat(i/10.0, 'f', 1, 64))
+	}
+	printSkipList(skipList)
+
+	rank := skipList.GetByRank(10)
+	if rank == nil {
+		return
+	}
+
+	print("score : ", fmt.Sprint(rank.data.score), " value :", fmt.Sprint(rank.data.value))
+}
+
+func TestSkipList_HasInRange(t *testing.T) {
+	skipList := MakeSkipList()
+
+	for i := 0.0; i < 100.0; i += 1.0 {
+		skipList.Insert(i, strconv.FormatFloat(i/10.0, 'f', 1, 64))
+	}
+	printSkipList(skipList)
+	rank := skipList.GetFirstInRange(11.2, 50)
+
+	if rank == nil {
+		return
+	}
+
+	print("score : ", fmt.Sprint(rank.data.score), " value :", fmt.Sprint(rank.data.value))
+
+}
+
+func TestSkipList_GetLastInRange(t *testing.T) {
+	skipList := MakeSkipList()
+
+	for i := 0.0; i < 100.0; i += 1.0 {
+		skipList.Insert(i, strconv.FormatFloat(i/10.0, 'f', 1, 64))
+	}
+	printSkipList(skipList)
+	skipList.RemoveInRangeByScore(0.0, 10.2)
+	printSkipList(skipList)
+
+}

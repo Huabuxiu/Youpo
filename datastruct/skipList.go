@@ -99,6 +99,7 @@ func (skipList *SkipList) ForEach(function define.FunctionInterface) {
 
 }
 
+// 插入一个值
 func (skipList *SkipList) Insert(score float64, value interface{}) {
 	skipList.check()
 
@@ -150,7 +151,10 @@ func (skipList *SkipList) Insert(score float64, value interface{}) {
 			preNodeItem.level[i].span = preToCurSpan
 		}
 	}
-	node.backWard = preNode[0]
+
+	if preNode[0] != skipList.head {
+		node.backWard = preNode[0]
+	}
 
 	if skipList.tail == nil || node.backWard == skipList.tail {
 		skipList.tail = node
@@ -160,6 +164,7 @@ func (skipList *SkipList) Insert(score float64, value interface{}) {
 
 }
 
+// 删除一个 值
 func (skipList *SkipList) Remove(score float64, value interface{}) {
 	skipList.check()
 
@@ -170,11 +175,6 @@ func (skipList *SkipList) Remove(score float64, value interface{}) {
 
 	//找到每层的前驱节点
 	preNode := make([]*SkipListNode, len(node.level))
-
-	skipList.removeNode(node, preNode)
-}
-
-func (skipList *SkipList) removeNode(node *SkipListNode, preNode []*SkipListNode) {
 	for i := len(node.level) - 1; i >= 0; i-- {
 		currNode := skipList.head
 
@@ -184,6 +184,12 @@ func (skipList *SkipList) removeNode(node *SkipListNode, preNode []*SkipListNode
 
 		preNode[i] = currNode
 	}
+
+	skipList.removeNode(node, preNode)
+}
+
+// 删除节点
+func (skipList *SkipList) removeNode(node *SkipListNode, preNode []*SkipListNode) {
 
 	for i := len(node.level) - 1; i >= 0; i-- {
 		preNode[i].level[i].nextNode = node.level[i].nextNode
@@ -207,6 +213,7 @@ func (skipList *SkipList) removeNode(node *SkipListNode, preNode []*SkipListNode
 	skipList.length--
 }
 
+//获取排位
 func (skipList *SkipList) GetRank(score float64, value interface{}) int64 {
 	skipList.check()
 	rank, node := skipList.findNodeAndGetRank(score, value)
@@ -217,6 +224,7 @@ func (skipList *SkipList) GetRank(score float64, value interface{}) int64 {
 	return 0
 }
 
+//查找节点和排位
 func (skipList *SkipList) findNodeAndGetRank(score float64, value interface{}) (int64, *SkipListNode) {
 	var rank int64 = 0
 
@@ -240,6 +248,7 @@ func (skipList *SkipList) findNodeAndGetRank(score float64, value interface{}) (
 	return 0, nil
 }
 
+//查找关于分值和值的节点
 func (skipList *SkipList) getNode(score float64, value interface{}) *SkipListNode {
 	skipList.check()
 	rank, node := skipList.findNodeAndGetRank(score, value)
@@ -249,23 +258,129 @@ func (skipList *SkipList) getNode(score float64, value interface{}) *SkipListNod
 	return nil
 }
 
+//按照排位查找
 func (skipList *SkipList) GetByRank(rank int64) *SkipListNode {
+	skipList.check()
+	if rank <= 0 {
+		return nil
+	}
+
+	var currRank int64 = 0
+
+	currNode := skipList.head
+	for i := skipList.maxLevel - 1; i >= 0; i-- {
+
+		for currNode.level[i].nextNode != nil &&
+			(currRank+currNode.level[i].span <= rank) {
+			// 只移动了currNode 层数还没有换
+			currRank = currNode.level[i].span + currRank
+			currNode = currNode.level[i].nextNode
+		}
+
+		if currRank == rank {
+			return currNode
+		}
+	}
+
 	return nil
 }
 
+//score range
 func (skipList *SkipList) HasInRange(start float64, end float64) bool {
-	return false
+	skipList.check()
+	if end < start {
+		return false
+	}
+
+	if skipList.tail == nil || start > skipList.tail.data.score || end < 0.0 || skipList.length == 0 {
+		return false
+	}
+
+	if end == 0.0 && skipList.head.level[0].nextNode.data.score > 0.0 {
+		return false
+	}
+
+	return true
 }
 
-func (skipList *SkipList) GetFirstInRange(start float64, end float64) (float64, interface{}) {
-	return 0, 1
+func (skipList *SkipList) GetFirstInRange(start float64, end float64) *SkipListNode {
+	if !skipList.HasInRange(start, end) {
+		return nil
+	}
+
+	currNode := skipList.head
+	for i := skipList.maxLevel - 1; i >= 0; i-- {
+
+		for currNode.level[i].nextNode != nil &&
+			(currNode.level[i].nextNode.data.score < start) {
+			// 只移动了currNode 层数还没有换
+			currNode = currNode.level[i].nextNode
+		}
+
+		if currNode.level[i].nextNode.data.score >= start && currNode.level[i].nextNode.data.score <= end {
+			currNode = currNode.level[i].nextNode
+
+			//往回探测到最符合规律的
+			for currNode.backWard != nil && currNode.backWard.data.score >= start {
+				currNode = currNode.backWard
+			}
+
+			return currNode
+		}
+
+	}
+	return nil
 }
 
-func (skipList *SkipList) GetLastInRange(start float64, end float64) (float64, interface{}) {
-	return 0, 1
+func (skipList *SkipList) GetLastInRange(start float64, end float64) *SkipListNode {
+	if !skipList.HasInRange(start, end) {
+		return nil
+	}
+
+	currNode := skipList.head
+	for i := skipList.maxLevel - 1; i >= 0; i-- {
+
+		for currNode.level[i].nextNode != nil &&
+			(currNode.level[i].nextNode.data.score < end) {
+			// 只移动了currNode 层数还没有换
+			currNode = currNode.level[i].nextNode
+		}
+
+		if currNode.level[i].nextNode != nil &&
+			currNode.data.score >= start {
+
+			//往前探测到最符合规律的
+			for currNode.level[0].nextNode != nil &&
+				currNode.level[0].nextNode.data.score >= start && currNode.level[0].nextNode.data.score <= end {
+				currNode = currNode.level[0].nextNode
+			}
+			return currNode
+		}
+
+	}
+	return nil
 }
 
-func (skipList *SkipList) RemoveInRange(start float64, end float64) {
+func (skipList *SkipList) RemoveInRangeByScore(start float64, end float64) {
+	skipList.check()
+
+	node := skipList.HasInRange(start, end)
+	if !node {
+		return
+	}
+
+	//找到每层的前驱节点、和next
+
+	firstNode := skipList.GetFirstInRange(start, end)
+
+	pre := firstNode.backWard
+	if pre == nil {
+		pre = skipList.head
+	}
+
+	for pre.level[0].nextNode != nil && pre.level[0].nextNode.data.score < end {
+		skipList.Remove(pre.level[0].nextNode.data.score, pre.level[0].nextNode.data.value)
+	}
 
 }
 
