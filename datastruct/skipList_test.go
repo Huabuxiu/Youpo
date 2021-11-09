@@ -32,6 +32,7 @@ func TestSkipList_Insert(t *testing.T) {
 	}
 
 	rank := skipList.GetRank(6.0, "0.6")
+	skipList.GetRank(7.0, "0.7")
 	println(rank)
 
 	printSkipList(skipList)
@@ -46,6 +47,8 @@ func TestSkipList_Remove(t *testing.T) {
 	printSkipList(skipList)
 
 	skipList.Remove(87.0, "8.7")
+	skipList.Remove(6.0, "0.6")
+	skipList.Remove(7.0, "0.7")
 
 	printSkipList(skipList)
 }

@@ -168,18 +168,28 @@ func (skipList *SkipList) Insert(score float64, value interface{}) {
 func (skipList *SkipList) Remove(score float64, value interface{}) {
 	skipList.check()
 
-	node := skipList.getNode(score, value)
+	rank, node := skipList.findNodeAndGetRank(score, value)
 	if node == nil {
 		return
 	}
 
 	//找到每层的前驱节点
-	preNode := make([]*SkipListNode, len(node.level))
-	for i := len(node.level) - 1; i >= 0; i-- {
+	preNode := make([]*SkipListNode, skipList.maxLevel)
+	for i := skipList.maxLevel - 1; i >= 0; i-- {
 		currNode := skipList.head
+		var perRank int64 = 0
 
-		for currNode.level[i].nextNode.data != node.data {
-			currNode = currNode.level[i].nextNode
+		if i < len(node.level) {
+			for currNode.level[i].nextNode.data != node.data {
+				currNode = currNode.level[i].nextNode
+			}
+		} else {
+			for currNode.level[i].nextNode != nil &&
+				perRank+currNode.level[i].span < rank {
+
+				perRank += currNode.level[i].span
+				currNode = currNode.level[i].nextNode
+			}
 		}
 
 		preNode[i] = currNode
@@ -191,9 +201,13 @@ func (skipList *SkipList) Remove(score float64, value interface{}) {
 // 删除节点
 func (skipList *SkipList) removeNode(node *SkipListNode, preNode []*SkipListNode) {
 
-	for i := len(node.level) - 1; i >= 0; i-- {
-		preNode[i].level[i].nextNode = node.level[i].nextNode
-		preNode[i].level[i].span += node.level[i].span - 1
+	for i := skipList.maxLevel - 1; i >= 0; i-- {
+		if i < len(node.level) {
+			preNode[i].level[i].nextNode = node.level[i].nextNode
+			preNode[i].level[i].span += node.level[i].span - 1
+		} else {
+			preNode[i].level[i].span -= 1
+		}
 	}
 
 	//尾节点
