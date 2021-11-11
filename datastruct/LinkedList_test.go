@@ -58,7 +58,7 @@ func TestLinkedList_Set(t *testing.T) {
 	printList(list)
 
 	//list.Set(-1,20)
-	list.Set(30, 20)
+	//list.Set(30, 20)
 }
 
 func TestLinkedList_Insert(t *testing.T) {
