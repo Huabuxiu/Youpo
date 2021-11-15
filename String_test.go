@@ -21,7 +21,9 @@ func TestString_get(t *testing.T) {
 	argsGet := []string{"get", "test"}
 
 	process.Exec(db[0], argsSet)
+
 	exec := process.Exec(db[0], argsGet)
+
 	println(string(exec.ToBytes()))
 }
 
@@ -86,6 +88,42 @@ func TestGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := Get(tt.args.db, tt.args.args); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestAppend(t *testing.T) {
+	type args struct {
+		db   *DB
+		args []string
+	}
+	var db = MakeDB(0)
+	tests := []struct {
+		name string
+		args args
+		want networks.Reply
+	}{
+		{
+			name: "appendNil",
+			args: args{
+				db:   db,
+				args: []string{"test", "123"},
+			},
+			want: networks.MakeStringReply("3"),
+		}, {
+			name: "append",
+			args: args{
+				db:   db,
+				args: []string{"test", "0987"},
+			},
+			want: networks.MakeStringReply("7"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Append(tt.args.db, tt.args.args); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Append() = %v, want %v", got, tt.want)
 			}
 		})
 	}
