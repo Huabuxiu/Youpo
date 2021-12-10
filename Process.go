@@ -58,7 +58,7 @@ import "github.com/Huabuxiu/Youpo/networks"
  *    使得在集群模式下，一个被标示为 importing 的槽可以接收这命令。
 */
 
-//命令函数指针重定向
+//多态 命令函数指针
 type Function func(db *DB, args []string) networks.Reply
 
 //命令表

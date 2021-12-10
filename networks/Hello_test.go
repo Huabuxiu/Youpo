@@ -6,7 +6,6 @@ import (
 	"net"
 	"strconv"
 	"testing"
-	"time"
 )
 
 func TestListener(t *testing.T) {
@@ -17,7 +16,7 @@ func TestClient(t *testing.T) {
 
 	conn, err := net.Dial("tcp", ":8080")
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 30; i++ {
 		val := strconv.Itoa(rand.Int())
 		_, err = conn.Write([]byte(val + "\n"))
 		if err != nil {
@@ -30,7 +29,6 @@ func TestClient(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		time.Sleep(time.Second)
 		println(string(line))
 	}
 

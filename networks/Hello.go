@@ -45,6 +45,7 @@ func Handle(conn net.Conn) {
 			return
 		}
 
+		println(readString)
 		bytes := []byte("hello " + readString)
 		_, _ = conn.Write(bytes)
 	}

@@ -2,7 +2,9 @@ package Youpo
 
 import (
 	"github.com/Huabuxiu/Youpo/networks"
+	"github.com/Jeffail/tunny"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -127,4 +129,21 @@ func TestAppend(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppend_1(t *testing.T) {
+
+	pool := tunny.NewFunc(10000, func(payload interface{}) interface{} {
+		println(payload.(int))
+		return payload
+	})
+
+	defer pool.Close()
+
+	var wg sync.WaitGroup
+	wg.Add(200000)
+	for i := 0; i < 200000; i++ {
+		pool.Process(i)
+	}
+	wg.Wait()
 }
