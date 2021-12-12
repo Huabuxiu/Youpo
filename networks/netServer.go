@@ -3,6 +3,7 @@ package networks
 import (
 	"fmt"
 	"github.com/Huabuxiu/Youpo"
+	"io"
 	"log"
 	"net"
 )
@@ -38,10 +39,7 @@ func (receiver *netServer) ListenAndProcess() {
 		receiver.listener.Close()
 	}()
 
-	defer func() {
-		//todo log stop tpc
-		receiver.listener.Close()
-	}()
+	defer receiver.listener.Close()
 
 	for {
 		//建立连接
@@ -57,21 +55,32 @@ func (receiver *netServer) ListenAndProcess() {
 }
 
 func HandleConn(conn net.Conn) {
-
 	//构造client
 
-	client := Youpo.MakeClient(Youpo.GetSever().GetProcess(), conn)
+	client := Youpo.MakeClient(conn)
 	Youpo.GetSever().SelectDb(client, 0)
 	Youpo.GetSever().RegisterClient(client)
 
+	//读取来自client 的 Message
 	for {
 		//阻塞读取
-
-		//	解析协议
+		err := client.ReadMsg()
+		if err == io.EOF {
+			//移除client
+			Youpo.GetSever().RemoveClient(client)
+			continue
+		}
+		// TODO  执行超时
 
 		//	提交执行到单线执行器
+		result := Exec(client)
 
 		//写结果到连接中
+		_ = client.Write(result)
 	}
 
+}
+
+func Exec(client *Youpo.Client) Youpo.Reply {
+	return Youpo.GetSever().Exec(client)
 }

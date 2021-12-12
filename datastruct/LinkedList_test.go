@@ -35,7 +35,7 @@ func TestLinkedList_Find(t *testing.T) {
 	printList(list)
 	println("--------------")
 	for i := 0; i < 10; i++ {
-		println("node value: ", list.Find(i).value.(int))
+		println("node value: ", list.FindIndex(i).value.(int))
 	}
 
 }

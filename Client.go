@@ -12,9 +12,6 @@ type Client struct {
 	//选择的db 索引
 	dbIndex int
 
-	//执行器
-	process *Process
-
 	//tcp 连接
 	connection net.Conn
 
@@ -25,11 +22,20 @@ type Client struct {
 	lastAliveTime time.Time
 }
 
-func MakeClient(process *Process, connection net.Conn) *Client {
+func MakeClient(connection net.Conn) *Client {
 	client := &Client{
 		connection:    connection,
-		process:       process,
 		lastAliveTime: time.Now(),
 	}
 	return client
+}
+
+func (client *Client) ReadMsg() error {
+
+	//	解析协议
+	return nil
+}
+
+func (client *Client) Write(reply Reply) error {
+	return nil
 }

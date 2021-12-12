@@ -2,6 +2,7 @@ package Youpo
 
 import (
 	"github.com/Jeffail/tunny"
+	"math/rand"
 	"reflect"
 	"sync"
 	"testing"
@@ -132,22 +133,75 @@ func TestAppend(t *testing.T) {
 }
 
 func TestAppend_1(t *testing.T) {
+	type args struct {
+		db   *DB
+		args []string
+	}
+	//var db = MakeDB(0)
 
-	pool := tunny.NewFunc(10000, func(payload interface{}) interface{} {
-		time.Sleep(2 * time.Second)
-		println(payload.(int))
+	goroutineNum := 2
+	tasknums := goroutineNum * 600
+	nums := 0
+
+	pool := tunny.NewFunc(goroutineNum, func(payload interface{}) interface{} {
+		nums += 1
 		return payload
 	})
 
 	defer pool.Close()
+	now := time.Now()
 
 	var wg sync.WaitGroup
-	wg.Add(200000)
-	for i := 0; i < 200000; i++ {
+	wg.Add(tasknums)
+	for i := 0; i < tasknums; i++ {
 		go func(num int) {
 			pool.Process(num)
+			wg.Done()
 		}(i)
-
 	}
 	wg.Wait()
+
+	since := time.Since(now)
+	println(nums)
+	println("cost ", since.Milliseconds(), "avenger ", since.Nanoseconds()/int64(tasknums), "ns")
+}
+
+func TestGetP(t *testing.T) {
+	type args struct {
+		db   *DB
+		args []string
+	}
+	var db = MakeDB(0)
+
+	var qps int64 = 1000000
+	var qpsi int = 1000000
+	writeRate := 10
+
+	goroutineNum := 2
+	tasknums := goroutineNum * qpsi
+
+	pool := tunny.NewFunc(goroutineNum, func(payload interface{}) interface{} {
+		if rand.Intn(100) < writeRate {
+			Set(db, []string{"test", "1234"})
+		} else {
+			Get(db, []string{"test"})
+		}
+		return payload
+	})
+
+	var wg sync.WaitGroup
+	wg.Add(tasknums)
+
+	now := time.Now()
+	for i := 0; i < tasknums; i++ {
+		go func(num int) {
+			pool.Process(num)
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+
+	since := time.Since(now)
+
+	println("qps ", qps, " cost ", since.Milliseconds(), "ms", "avenger ", since.Nanoseconds()/(2*qps), "ns")
 }

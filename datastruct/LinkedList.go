@@ -48,8 +48,8 @@ func (linkedList *LinkedList) Add(data interface{}) {
 	linkedList.size++
 }
 
-//Find 查找某一个位置的
-func (linkedList *LinkedList) Find(index int) (node *LinkedListNode) {
+//FindIndex 查找某一个位置的
+func (linkedList *LinkedList) FindIndex(index int) (node *LinkedListNode) {
 	linkedList.checkListWithSize(index)
 
 	i := 0
@@ -64,6 +64,27 @@ func (linkedList *LinkedList) Find(index int) (node *LinkedListNode) {
 		}
 	}
 	return currentNode
+}
+
+func (linkedList *LinkedList) FindFirst(data interface{}) (node *LinkedListNode, index int) {
+	if data == nil {
+		return nil, -1
+	}
+
+	i := 0
+	currentNode := linkedList.head
+
+	for currentNode != nil {
+		if data != currentNode.value {
+			currentNode = currentNode.next
+			i++
+		} else {
+			return currentNode, i
+		}
+	}
+
+	//没找到
+	return nil, -1
 }
 
 //listAddNodeHead 在链表头部插入
@@ -107,7 +128,7 @@ func (linkedList *LinkedList) AddAtTail(data interface{}) {
 
 //Set 修改指定位置的值
 func (linkedList *LinkedList) Set(index int, data interface{}) {
-	node := linkedList.Find(index)
+	node := linkedList.FindIndex(index)
 	node.value = data
 }
 
@@ -120,7 +141,7 @@ func (linkedList *LinkedList) Insert(index int, data interface{}) {
 	} else if index == linkedList.size {
 		linkedList.AddAtTail(data)
 	} else {
-		preListNode := linkedList.Find(index - 1)
+		preListNode := linkedList.FindIndex(index - 1)
 
 		newNode := &LinkedListNode{
 			value: data,
@@ -143,11 +164,20 @@ func (linkedList *LinkedList) Remove(index int) {
 		linkedList.tail = linkedList.tail.prev
 		linkedList.tail.next = nil
 	} else {
-		listNode := linkedList.Find(index)
+		listNode := linkedList.FindIndex(index)
 		listNode.next.prev = listNode.prev
 		listNode.prev.next = listNode.next
 	}
 	linkedList.size--
+}
+
+func (linkedList *LinkedList) RemoveNode(data interface{}) {
+	_, index := linkedList.FindFirst(data)
+
+	if index == -1 {
+		return
+	}
+	linkedList.Remove(index - 1)
 }
 
 //RemoveTail

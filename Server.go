@@ -2,6 +2,7 @@ package Youpo
 
 import (
 	"github.com/Huabuxiu/Youpo/datastruct"
+	"github.com/Jeffail/tunny"
 	"sync"
 )
 
@@ -10,6 +11,8 @@ var server *Server
 
 type Server struct {
 	process *Process
+
+	processPool *tunny.Pool
 
 	dbs []*DB
 
@@ -24,14 +27,22 @@ type Server struct {
 func InitServer() *Server {
 	dbs := make([]*DB, 16)
 	dbs[0] = MakeDB(0)
+
+	//执行器初始化
 	singleProcess := MakeSingleProcess()
+	processSinglePool := tunny.NewFunc(1, func(client interface{}) interface{} {
+		args := client.(*Client).args
+		db := client.(*Client).db
+		return singleProcess.Exec(db, args)
+	})
 
 	//注册命令表
 	StringInit()
 	server = &Server{
-		process:   singleProcess,
-		dbs:       dbs,
-		CloseChan: make(chan struct{}),
+		process:     singleProcess,
+		processPool: processSinglePool,
+		dbs:         dbs,
+		CloseChan:   make(chan struct{}),
 	}
 	return server
 }
@@ -60,8 +71,20 @@ func (server *Server) SelectDb(client *Client, dbIndex int) Reply {
 
 func (server *Server) RegisterClient(client *Client) {
 	server.clientLock.Lock()
-
 	defer server.clientLock.Unlock()
 
 	server.clientList.Add(client)
+}
+
+func (server *Server) RemoveClient(client *Client) {
+	server.clientLock.Lock()
+	defer server.clientLock.Unlock()
+
+	server.clientList.RemoveNode(client)
+
+}
+
+func (server *Server) Exec(client *Client) Reply {
+	//使用协程池来处理执行
+	return server.processPool.Process(client).(Reply)
 }

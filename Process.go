@@ -126,6 +126,7 @@ func (cmd *Command) checkArgNums(argNum int) bool {
 
 //执行命令
 func (process *Process) Exec(db *DB, args []string) Reply {
+	//获取key
 	key := string(args[0])
 
 	command, exist := commandMap.Get(key)
