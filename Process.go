@@ -4,7 +4,6 @@ import (
 	"github.com/Huabuxiu/Youpo/datastruct"
 	"sync"
 )
-import "github.com/Huabuxiu/Youpo/networks"
 
 /**
 以下是各个 FLAG 的意义：
@@ -59,7 +58,7 @@ import "github.com/Huabuxiu/Youpo/networks"
 */
 
 //多态 命令函数指针
-type Function func(db *DB, args []string) networks.Reply
+type Function func(db *DB, args []string) Reply
 
 //命令表
 var commandMap = datastruct.MakeMap()
@@ -126,18 +125,23 @@ func (cmd *Command) checkArgNums(argNum int) bool {
 }
 
 //执行命令
-func (process *Process) Exec(db *DB, args []string) networks.Reply {
+func (process *Process) Exec(db *DB, args []string) Reply {
 	key := string(args[0])
 
 	command, exist := commandMap.Get(key)
 	if !exist {
-		return networks.EmptyReply{}
+		return EmptyReply{}
 	}
 
 	//校验参数个数
 	if !command.(*Command).checkArgNums(len(args)) {
-		return networks.MakeErrorReply("illegal arg length")
+		return MakeErrorReply("illegal arg length")
 	}
 
 	return command.(*Command).execFunction(db, args[1:])
+}
+
+func StringInit() {
+	RegisterCommand("get", Get, "r", 2)
+	RegisterCommand("set", Set, "w", 3)
 }

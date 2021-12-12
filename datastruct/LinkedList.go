@@ -188,7 +188,7 @@ func (linkedList *LinkedList) ForEach(function define.FunctionInterface) {
 }
 
 //make create a new linked list
-func Make(values ...interface{}) *LinkedList {
+func MakeList(values ...interface{}) *LinkedList {
 	list := LinkedList{}
 	for _, value := range values {
 		list.Add(value)

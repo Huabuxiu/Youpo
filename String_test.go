@@ -1,11 +1,11 @@
 package Youpo
 
 import (
-	"github.com/Huabuxiu/Youpo/networks"
 	"github.com/Jeffail/tunny"
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 )
 
 func makeInit() (*Process, []*DB) {
@@ -38,7 +38,7 @@ func TestSet(t *testing.T) {
 	type caseType struct {
 		name string
 		args args
-		want networks.Reply
+		want Reply
 	}
 	var db = MakeDB(0)
 
@@ -50,7 +50,7 @@ func TestSet(t *testing.T) {
 				db:   db,
 				args: []string{"test", "1234"},
 			},
-			want: networks.MakeOKReply(),
+			want: MakeOKReply(),
 		},
 	}
 	for _, tt := range tests {
@@ -72,7 +72,7 @@ func TestGet(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want networks.Reply
+		want Reply
 	}{
 		// TODO: Add test cases.
 		{
@@ -81,7 +81,7 @@ func TestGet(t *testing.T) {
 				db:   db,
 				args: []string{"test"},
 			},
-			want: networks.MakeStringReply("1234"),
+			want: MakeStringReply("1234"),
 		},
 	}
 	Set(db, []string{"test", "1234"})
@@ -104,7 +104,7 @@ func TestAppend(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want networks.Reply
+		want Reply
 	}{
 		{
 			name: "appendNil",
@@ -112,14 +112,14 @@ func TestAppend(t *testing.T) {
 				db:   db,
 				args: []string{"test", "123"},
 			},
-			want: networks.MakeStringReply("3"),
+			want: MakeStringReply("3"),
 		}, {
 			name: "append",
 			args: args{
 				db:   db,
 				args: []string{"test", "0987"},
 			},
-			want: networks.MakeStringReply("7"),
+			want: MakeStringReply("7"),
 		},
 	}
 	for _, tt := range tests {
@@ -134,6 +134,7 @@ func TestAppend(t *testing.T) {
 func TestAppend_1(t *testing.T) {
 
 	pool := tunny.NewFunc(10000, func(payload interface{}) interface{} {
+		time.Sleep(2 * time.Second)
 		println(payload.(int))
 		return payload
 	})
@@ -143,7 +144,10 @@ func TestAppend_1(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(200000)
 	for i := 0; i < 200000; i++ {
-		pool.Process(i)
+		go func(num int) {
+			pool.Process(num)
+		}(i)
+
 	}
 	wg.Wait()
 }

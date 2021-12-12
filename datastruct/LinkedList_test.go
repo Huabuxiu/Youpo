@@ -12,7 +12,7 @@ func printList(list *LinkedList) {
 }
 
 func makeTestList() (list *LinkedList) {
-	lists := Make()
+	lists := MakeList()
 	for i := 0; i < 10; i++ {
 		lists.Add(i)
 	}
@@ -20,7 +20,7 @@ func makeTestList() (list *LinkedList) {
 }
 
 func TestLinkedList_Add(t *testing.T) {
-	list := Make()
+	list := MakeList()
 	for i := 0; i < 10; i++ {
 		list.Add(i)
 	}
@@ -28,7 +28,7 @@ func TestLinkedList_Add(t *testing.T) {
 }
 
 func TestLinkedList_Find(t *testing.T) {
-	list := Make()
+	list := MakeList()
 	for i := 0; i < 10; i++ {
 		list.Add(i)
 	}
@@ -41,7 +41,7 @@ func TestLinkedList_Find(t *testing.T) {
 }
 
 func TestLinkedList_AddAtHead(t *testing.T) {
-	list := Make()
+	list := MakeList()
 	for i := 0; i < 10; i++ {
 		list.AddAtHead(i)
 	}
@@ -62,7 +62,7 @@ func TestLinkedList_Set(t *testing.T) {
 }
 
 func TestLinkedList_Insert(t *testing.T) {
-	list := Make()
+	list := MakeList()
 	for i := 0; i < 10; i++ {
 		if i%2 == 0 {
 			list.Add(i)

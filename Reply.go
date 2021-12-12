@@ -1,4 +1,4 @@
-package networks
+package Youpo
 
 type Reply interface {
 	ToBytes() []byte
